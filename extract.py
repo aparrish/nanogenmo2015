@@ -1,6 +1,7 @@
 import re
 
-from pattern.en import wordnet, parsetree
+from pattern.en import parsetree, wordnet
+from spacy.en import English
 
 person_ss = wordnet.synsets('person')[0]
 def synset_is_person(synset):
@@ -33,30 +34,36 @@ def lemma_is_person(lemma):
         return any([synset_is_person(s) for s in synsets \
                 if not(synset_is_proper(s))])
 
-def sentences_with_lemmata(s):
-    return parsetree(s, lemmata=True, relations=True, encoding='utf-8')
+def sentences_with_lemmata(nlp, s):
+    return list(nlp(s).sents)
 
-def get_nouns(sentence):
+def get_nouns(nlp, sentence):
+    NN = nlp.vocab.strings['NN']
+    NNS = nlp.vocab.strings['NNS']
     for word in sentence:
-        if word.type.startswith('NN'):
+        if word.tag in (NN, NNS):
             yield word
 
-def get_pronouns(sentence):
+def get_pronouns(nlp, sentence):
+    PRP = nlp.vocab.strings['PRP']
+    PRPS = nlp.vocab.strings['PRP$']
     for word in sentence:
-        if word.type.startswith('PRP'):
+        if word.tag in (PRP, PRPS):
             yield word
 
-def has_people(s):
-    any_proper_nouns = any([word.type.startswith('NNP') for word in s])
+def has_people(nlp, s):
+    NNP = nlp.vocab.strings['NNP']
+    any_proper_nouns = any([word.tag == NNP for word in s])
     any_caps = any([word.string[0].isupper() for word in s[1:]])
-    any_person_nouns = any([lemma_is_person(nn.lemma) for nn in get_nouns(s)])
-    any_not_its = any([prp.lemma != 'it' for prp in get_pronouns(s)])
+    any_person_nouns = any([lemma_is_person(nn.lemma) \
+            for nn in get_nouns(nlp, s)])
+    any_not_its = any([prp.lemma_ != 'it' for prp in get_pronouns(nlp, s)])
     return any_person_nouns or any_not_its or any_proper_nouns or any_caps
 
-def physical_object_count(s):
-    nns = get_nouns(s)
-    count = len([nn.lemma for nn in nns \
-            if lemma_is_physical_object(nn.lemma)])
+def physical_object_count(nlp, s):
+    nns = get_nouns(nlp, s)
+    count = len([nn.lemma_ for nn in nns \
+            if lemma_is_physical_object(nn.lemma_)])
     return count
 
 def hypernym_chains(lemma):
@@ -68,9 +75,9 @@ def hypernym_chains(lemma):
 
 def subjects_are_physical_objects(sentence):
     subj_head_lemmas = []
-    for chunk in sentence.chunks:
-        if chunk.role == 'SBJ':
-            subj_head_lemmas.append(chunk.head.lemma)
+    for word in sentence:
+        if word.dep_ == 'nsubj':
+            subj_head_lemmas.append(word.lemma_)
     return len(subj_head_lemmas) > 0 and \
             all([lemma_is_physical_object(lem) for lem in subj_head_lemmas])
 
@@ -93,13 +100,17 @@ def normalize(s):
 def ucfirst(s):
     return s[0].upper() + s[1:]
 
-if __name__ == '__main__':
-    import sys
-    for sentence in sentences_with_lemmata(sys.stdin.read().decode('utf8')):
-        if not(has_people(sentence)) and \
+def main(nlp, s):
+    import sys, os
+    for sentence in sentences_with_lemmata(nlp, s):
+        if not(has_people(nlp, sentence)) and \
                 subjects_are_physical_objects(sentence):
             if not(sentence.string.startswith('"')):
                 output = normalize(sentence.string)
                 if len(output) > 20:
-                    print ucfirst(output)
+                    print ucfirst(output).replace("\r\n", " ")
 
+if __name__ == '__main__':
+    from spacy.en import English
+    nlp = English(data_dir=os.environ.get('SPACY_DATA'))
+    main(nlp)
