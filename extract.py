@@ -55,7 +55,7 @@ def has_people(nlp, s):
     NNP = nlp.vocab.strings['NNP']
     any_proper_nouns = any([word.tag == NNP for word in s])
     any_caps = any([word.string[0].isupper() for word in s[1:]])
-    any_person_nouns = any([lemma_is_person(nn.lemma) \
+    any_person_nouns = any([lemma_is_person(nn.lemma_) \
             for nn in get_nouns(nlp, s)])
     any_not_its = any([prp.lemma_ != 'it' for prp in get_pronouns(nlp, s)])
     return any_person_nouns or any_not_its or any_proper_nouns or any_caps

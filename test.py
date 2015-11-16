@@ -53,6 +53,8 @@ class TestExtraction(unittest.TestCase):
                 nlp, u'it was beautiful')[0]))
         self.assertTrue(has_people(nlp, sentences_with_lemmata(
                 nlp, u'The dog was unhappy with Jane')[0]))
+        self.assertTrue(has_people(nlp, sentences_with_lemmata(
+                nlp, u'The girl is innocent.')[0]))
 
     def test_subjects_are_physical_objects(self):
         from extract import subjects_are_physical_objects
