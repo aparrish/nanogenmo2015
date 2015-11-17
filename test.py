@@ -67,6 +67,18 @@ class TestExtraction(unittest.TestCase):
         self.assertFalse(subjects_are_physical_objects(
                 sentences_with_lemmata(
                     nlp, u'asdf asdf asdf')[0]))
+                
+    def test_subjects_are_geological_formations(self):
+        from extract import subjects_are_geological_formations
+        self.assertTrue(subjects_are_geological_formations(
+                sentences_with_lemmata(
+                    nlp, u'the mesa was beautiful')[0]))
+        self.assertFalse(subjects_are_geological_formations(
+                sentences_with_lemmata(
+                    nlp, u'truth was unnecessary')[0]))
+        self.assertFalse(subjects_are_geological_formations(
+                sentences_with_lemmata(
+                    nlp, u'asdf asdf asdf')[0]))
 
     def test_synset_is_physical_object(self):
         from extract import synset_is_physical_object
@@ -81,10 +93,47 @@ class TestExtraction(unittest.TestCase):
         self.assertFalse(lemma_is_physical_object('truth'))
         self.assertFalse(lemma_is_physical_object('asdf'))
 
+    def test_lemma_is_geological_formation(self):
+        from extract import lemma_is_geological_formation
+        self.assertTrue(lemma_is_geological_formation('beach'))
+        self.assertFalse(lemma_is_geological_formation('truth'))
+        self.assertFalse(lemma_is_geological_formation('asdf'))
+        self.assertFalse(lemma_is_geological_formation('might'))
+
+    def test_lemma_is_natural(self):
+        from extract import lemma_is_natural
+        self.assertTrue(lemma_is_natural('beach'))
+        self.assertFalse(lemma_is_natural('truth'))
+        self.assertFalse(lemma_is_natural('asdf'))
+        self.assertFalse(lemma_is_natural('might'))
+
     def test_physical_object_count(self):
         from extract import physical_object_count
         self.assertEqual(physical_object_count(
             nlp, sentences_with_lemmata(nlp, u"the rocks are good")[0]), 1)
+
+    def test_has_pronoun_subject(self):
+        from extract import has_pronoun_subject
+        self.assertTrue(has_pronoun_subject(nlp,
+            sentences_with_lemmata(nlp, u"it is really awful")[0]))
+        self.assertFalse(has_pronoun_subject(nlp,
+            sentences_with_lemmata(nlp, u"the dog is really awful")[0]))
+        self.assertTrue(has_pronoun_subject(nlp,
+            sentences_with_lemmata(nlp,
+                u"It is one of the most graceful of the conifers.")[0]))
+
+    def test_get_nsubj(self):
+        from extract import get_nsubj
+        print get_nsubj(
+            sentences_with_lemmata(nlp,
+                u"The growing darkness seemed a protection.")[0])
+        print get_nsubj(
+            sentences_with_lemmata(nlp,
+                u"Annoyingly, the fish I ate yesterday swam.")[0])
+        print get_nsubj(
+            sentences_with_lemmata(nlp,
+                u"Packs were being laid out, overhauled, and repacked; saddles and bridles and weapons were being worked over; clothes were being awkwardly mended.")[0])
+            
 
 if __name__ == '__main__':
     unittest.main()
