@@ -1,7 +1,8 @@
 import re
+import sys
 
 from pattern.en import parsetree, wordnet
-from pattern.en.wordnet import Synset
+from pattern.text.en.wordnet import Synset
 from spacy.tokens import Span
 
 person_ss = wordnet.synsets('person')[0]
@@ -144,6 +145,8 @@ def get_nsubj(sentence):
         deps = dep_to_root(token)
         if deps[-1] in ('nsubj', 'nsubjpass'):
             nsubj.append(i)
+    if len(nsubj) == 0:
+        raise ValueError
     nsubj_span = Span(sentence.doc, sentence.start+min(nsubj),
             sentence.start+max(nsubj)+1)
     return nsubj_span
@@ -153,6 +156,9 @@ def replace_span(sentence, span, s):
 
 def nsubj_is_plural(nsubj):
     return nsubj.root.tag_ == 'NNS'
+
+def sentence_is_past(sentence):
+    return sentence.root.tag_ == 'VBD'
 
 def normalize(s):
     s = s.lower().strip()
@@ -174,14 +180,28 @@ def normalize(s):
 def ucfirst(s):
     return s[0].upper() + s[1:]
 
+def nature_sentences(nlp, s):
+    for sentence in sentences_with_lemmata(nlp, s):
+        if not(has_people(nlp, sentence)) and \
+                subjects_are_natural(sentence) and \
+                not(has_pronoun_subject(nlp, sentence)) and \
+                sentence_is_past(sentence) and \
+                len(sentence.text) > 20 and \
+                len(sentence.text) < 140:
+            yield ucfirst(normalize(sentence.text))
+
 def main(nlp, s):
     import sys, os
     for sentence in sentences_with_lemmata(nlp, s):
         if not(has_people(nlp, sentence)) and \
                 subjects_are_natural(sentence) and \
-                not(has_pronoun_subject(nlp, sentence)):
+                not(has_pronoun_subject(nlp, sentence)) and \
+                sentence_is_past(sentence):
             if not(sentence.string.startswith('"')):
-                nsubj_span = get_nsubj(sentence)
+                try:
+                    nsubj_span = get_nsubj(sentence)
+                except ValueError:
+                    continue
                 if nsubj_is_plural(nsubj_span):
                     pronounified = replace_span(sentence, nsubj_span, "they")
                 else:

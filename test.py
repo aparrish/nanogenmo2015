@@ -4,28 +4,7 @@ from pattern.en import wordnet
 from extract import synset_is_person, lemma_is_person, synset_is_proper, \
     get_nouns, has_people, sentences_with_lemmata, get_pronouns
 
-nlp = None
-
 class TestExtraction(unittest.TestCase):
-    def test_synset_synset_is_person(self):
-        baker_ss = wordnet.synsets('baker')[0]
-        self.assertTrue(synset_is_person(baker_ss))
-        tree_ss = wordnet.synsets('tree')[0]
-        self.assertFalse(synset_is_person(tree_ss))
-
-    def test_lemma_is_person(self):
-        self.assertTrue(lemma_is_person('baker'))
-        self.assertFalse(lemma_is_person('tree'))
-        self.assertFalse(lemma_is_person('lake'))
-        self.assertTrue(lemma_is_person('person'))
-        self.assertFalse(lemma_is_person('asdf'))
-
-    def test_synset_is_proper(self):
-        tree_ss = wordnet.synsets('tree')[0]
-        Tree_ss = wordnet.synsets('tree')[2]
-        self.assertFalse(synset_is_proper(tree_ss))
-        self.assertTrue(synset_is_proper(Tree_ss))
-
     def test_get_nouns(self):
         nouns = get_nouns(nlp,
                 sentences_with_lemmata(
@@ -80,32 +59,6 @@ class TestExtraction(unittest.TestCase):
                 sentences_with_lemmata(
                     nlp, u'asdf asdf asdf')[0]))
 
-    def test_synset_is_physical_object(self):
-        from extract import synset_is_physical_object
-        tree_ss = wordnet.synsets('tree')[0]
-        self.assertTrue(synset_is_physical_object(tree_ss))
-        truth_ss = wordnet.synsets('truth')[0]
-        self.assertFalse(synset_is_physical_object(truth_ss))
-
-    def test_lemma_is_physical_object(self):
-        from extract import lemma_is_physical_object
-        self.assertTrue(lemma_is_physical_object('tree'))
-        self.assertFalse(lemma_is_physical_object('truth'))
-        self.assertFalse(lemma_is_physical_object('asdf'))
-
-    def test_lemma_is_geological_formation(self):
-        from extract import lemma_is_geological_formation
-        self.assertTrue(lemma_is_geological_formation('beach'))
-        self.assertFalse(lemma_is_geological_formation('truth'))
-        self.assertFalse(lemma_is_geological_formation('asdf'))
-        self.assertFalse(lemma_is_geological_formation('might'))
-
-    def test_lemma_is_natural(self):
-        from extract import lemma_is_natural
-        self.assertTrue(lemma_is_natural('beach'))
-        self.assertFalse(lemma_is_natural('truth'))
-        self.assertFalse(lemma_is_natural('asdf'))
-        self.assertFalse(lemma_is_natural('might'))
 
     def test_physical_object_count(self):
         from extract import physical_object_count
@@ -124,18 +77,28 @@ class TestExtraction(unittest.TestCase):
 
     def test_get_nsubj(self):
         from extract import get_nsubj
-        print get_nsubj(
+        nsubj = get_nsubj(
             sentences_with_lemmata(nlp,
                 u"The growing darkness seemed a protection.")[0])
-        print get_nsubj(
+        self.assertEqual(nsubj.string.strip(), u'The growing darkness')
+        nsubj2 = get_nsubj(
             sentences_with_lemmata(nlp,
                 u"Annoyingly, the fish I ate yesterday swam.")[0])
-        print get_nsubj(
-            sentences_with_lemmata(nlp,
-                u"Packs were being laid out, overhauled, and repacked; saddles and bridles and weapons were being worked over; clothes were being awkwardly mended.")[0])
-            
+        self.assertEqual(nsubj2.string.strip(), u'the fish I ate yesterday')
+
+    def test_sentence_is_past(self):
+        from extract import sentence_is_past
+        self.assertTrue(sentence_is_past(
+            sentences_with_lemmata(nlp, u"The fish were hungry")[0]))
+        self.assertFalse(sentence_is_past(
+            sentences_with_lemmata(nlp, u"The fish have hunger")[0]))
 
 if __name__ == '__main__':
+    import sys, os
+    from spacy.en import English
+    sys.stderr.write("initializing spacy...\n")
+    nlp = English(data_dir=os.environ.get('SPACY_DATA'))
+    sys.stderr.write("done.\n")
     unittest.main()
 
 
