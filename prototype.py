@@ -1,6 +1,11 @@
 import random, sys
 sentences = [line.split("\t")[1].strip() for line in sys.stdin]
+random.shuffle(sentences)
 
+i = 0
 while True:
-    print " ".join(random.sample(sentences, random.randrange(1, 7)))
+    advance = i+random.randrange(1, 7)
+    print " ".join(sentences[i:advance])
     print ""
+    i = advance
+

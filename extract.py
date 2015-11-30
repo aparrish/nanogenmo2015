@@ -1,7 +1,7 @@
 import re
 import sys
 
-from pattern.en import parsetree, wordnet
+from pattern.en import parsetree, wordnet, article
 from pattern.text.en.wordnet import Synset
 from spacy.tokens import Span
 
@@ -66,6 +66,9 @@ def lemma_is_person(lemma):
 
 def sentences_with_lemmata(nlp, s):
     return list(nlp(s).sents)
+
+def first_s(nlp, s):
+    return sentences_with_lemmata(nlp, s)[0]
 
 def get_nouns(nlp, sentence):
     NN = nlp.vocab.strings['NN']
@@ -141,14 +144,14 @@ def dep_to_root(token):
 
 def get_nsubj(sentence):
     nsubj = list()
-    for i, token in enumerate(sentence.subtree):
+    for i, token in enumerate(sentence.root.subtree):
         deps = dep_to_root(token)
-        if deps[-1] in ('nsubj', 'nsubjpass'):
-            nsubj.append(i)
+        if ('nsubj' in deps or 'nsubjpass' in deps) and \
+                (sentence.start <= token.i < sentence.end):
+            nsubj.append(token.i)
     if len(nsubj) == 0:
         raise ValueError
-    nsubj_span = Span(sentence.doc, sentence.start+min(nsubj),
-            sentence.start+max(nsubj)+1)
+    nsubj_span = Span(sentence.doc, min(nsubj), max(nsubj)+1)
     return nsubj_span
 
 def replace_span(sentence, span, s):
@@ -159,6 +162,102 @@ def nsubj_is_plural(nsubj):
 
 def sentence_is_past(sentence):
     return sentence.root.tag_ == 'VBD'
+
+def get_aux(sentence):
+    for child in sentence.root.children:
+        if child.dep_ in ('aux', 'auxpass'):
+            return child
+    return None
+
+def requires_past_tense_agreement(sentence):
+    if sentence.root.lower_ in ('was', 'were'):
+        return True
+    aux = get_aux(sentence)
+    if aux and aux.lower_ in ('was', 'were'):
+        return True
+    else:
+        return False
+
+def subtree_extent(span):
+    extent = [tok.i for tok in span]
+    return (min(extent), max(extent)+1)
+
+def span_subtract(whole, part):
+    if part.start > whole.end or part.end < whole.start:
+        return whole
+    if part.start <= whole.start:
+        return Span(whole.doc, part.end, whole.end)
+    else:
+        return Span(whole.doc, whole.start, part.start)
+
+def trim_tokens(span, tokens=None):
+    if tokens is None:
+        tokens = ['punct', 'cc']
+    start = span.start
+    end = span.end
+    for i, tok in enumerate(span):
+        if tok.dep_ in tokens:
+            start = span.start + (i+1)
+        else:
+            break
+    for i, tok in enumerate(reversed(span)):
+        if tok.dep_ in tokens:
+            end = span.end - (i+1)
+        else:
+            break
+    return Span(span.doc, start, end)
+
+def clauses(sentence, i=""):
+    root = sentence.root
+    results = list()
+    ccomps = list()
+    for child in root.children:
+        # don't check children OUTSIDE the span
+        if sentence.start <= child.i <= sentence.end:
+            if child.dep_ in ('ccomp', 'conj') and child.tag_.startswith('VB'):
+                ccomps.append(child)
+    rest_span = Span(sentence.doc, sentence.start, sentence.end)
+    if len(ccomps) > 0:
+        for child in ccomps:
+            ccomp_span = Span(sentence.doc, *subtree_extent(child.subtree))
+            rest_span = span_subtract(rest_span, ccomp_span)
+            results.extend(clauses(ccomp_span, i+">"))
+        results.append(trim_tokens(rest_span))
+    else:
+        results.append(trim_tokens(sentence))
+    return results
+
+def span_from_token_seq(tokens):
+    tlist = list(tokens)
+    """FIXME: assert that all of the tokens belong to the same document?"""
+    return Span(tlist[0].doc, *subtree_extent(tlist))
+
+def prep_phrases(root):
+    phrases = list()
+    for child in root.children:
+        if child.dep_ == 'prep':
+            phrases.append(span_from_token_seq(child.subtree))
+    return phrases
+
+def indefify(span):
+    # find that article (will raise IndexError, watch out)
+    det = [t for t in span.root.children \
+            if t.dep_ == 'det' and t.lower_ in ('the', 'this', 'these')][0]
+    # flatten to string replacing article
+    following = span.doc[det.i+1]
+    if span.root.tag_ == 'NNS':
+        det_s = 'some'
+    else:
+        det_s = article(following.lower_)
+    output = list()
+    for t in span.subtree:
+        if t.dep_ == 'predet':
+            continue
+        if t.i == det.i:
+            output.append(det_s)
+        else:
+            output.append(t.orth_)
+    return " ".join(output)
 
 def normalize(s):
     s = s.lower().strip()
@@ -171,11 +270,25 @@ def normalize(s):
     s = re.sub(r'\(\s*([^)]*)\)', r'(\1)', s)
     s = re.sub(r'\s*\)', ')', s)
     s = re.sub(r'--', u"\u2014", s)
+    s = re.sub(r'[{}]', '', s)
+    s = re.sub(r' - ', '-', s)
+    s = re.sub(r'_', '', s)
     if ')' in s and '(' not in s:
         s = s.replace(')', '')
     if '(' in s and ')' not in s:
         s = s.replace('(', '')
+    return ucfirst(s)
+
+def punctuate(s):
+    if not(re.search(r"[.!?]$", s)):
+        s += "."
     return s
+
+def depunct(s):
+    if re.search(r"[.!?]$", s):
+        return s[:-1]
+    else:
+        return s
 
 def ucfirst(s):
     return s[0].upper() + s[1:]
