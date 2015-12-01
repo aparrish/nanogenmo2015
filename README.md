@@ -8,6 +8,9 @@ written in Python 2.7. It makes extensive use of [spaCy](http://spacy.io/) (for
 parsing English sentences) and
 [Pattern](http://www.clips.ua.ac.be/pages/pattern-en)'s WordNet module.
 
+[Here's a PDF with output from this
+procedure](http://s3.amazonaws.com/aparrish/our-arrival.pdf).
+
 The source code is not in great shape. Apologies for that. :/
 
 ##Usage
