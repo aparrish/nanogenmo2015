@@ -44,20 +44,9 @@ if __name__ == '__main__':
     import pprint
     import re
 
-#    pprint.pprint(
-#            [pluck(['gutenberg_id', 'title'], r) for r \
-#                    in search(lambda x: 'Butt' in x['title'])])
     subjs = 'Western|Science fiction|Geology|Natural|Exploration|Discovery|Physical'
     books = [pluck(['gutenberg_id', 'title'], r) for r in \
                 search(lambda x: any([re.search(subjs, t['identifier'], re.I)
                     for t in x['subjects']]))]
     print len(books)
     pprint.pprint(books)
-#    for rec in records:
-#        print rec['gutenberg_id'], rec['title']
-#        try:
-#            txt = get_iso_text(rec['gutenberg_id'])[:100]
-#            print "check!", txt[:50].replace("\n", " ").replace("\r", " ")
-#        except ValueError as e:
-#            print str(e)
-#        print ""

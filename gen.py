@@ -138,7 +138,7 @@ def exposition(sdb, state):
 def awareness(sdb, state):
     verbs = ["became aware of", "sensed", "saw", "approached",
         "felt the presence of", "found", "came across", "heard",
-        "encountered", "met", "smelled", "perceived"]
+        "encountered", "happened upon", "smelled", "perceived"]
     adverbs = ["suddenly", "all at once", "gradually", "soon", "later", "then",
             "nearby", "in the distance", "meanwhile", "once in a while",
             "over and over", "again", "somewhere", "finally", "intermittently"]
@@ -199,7 +199,7 @@ def reminded(sdb, state):
 
 def motion(sdb, state):
     verbs = ["continue", "press on", "move on", "wander away",
-            "float away", "drift away", "ascend", "go up",
+            "float away", "ascend", "go up", "take flight", "leave",
             "descend", "go down", "proceed", "follow", "go around",
             "retreat"]
     modals = ["decided to", "resolved to", "agreed to", "elected to"]
@@ -407,4 +407,13 @@ def to_text(surfaced, *args, **kwargs):
     for para in surfaced[1]:
         doc += "\n".join(textwrap.wrap(' '.join(para))) + "\n\n"
     return doc
+
+if __name__ == '__main__':
+    import os, sys
+    from spacy.en import English
+    sys.stderr.write("initializing spacy...")
+    nlp = English(data_dir=os.environ.get('SPACY_DATA'))
+    sys.stderr.write("done.\n")
+    sdb = sentence_db(nlp, open("nature_sentences.txt"))
+    print render_latex_template(sys.stdin, novel(sdb, 10))
 

@@ -4,11 +4,11 @@
 \titleformat{\chapter}[display]
   {\normalfont\huge\mdseries}{}{16px}{\Large}
 \titlespacing*{\chapter}
-  {0pt}{16pt}{24pt}
+  {0pt}{0pt}{16pt}
 
 \begin{document}
 
-\title{\textit{Something}: A Novel}
+\title{\textit{Our Arrival}: A Novel}
 \author{Allison Parrish}
 \date{November 2015}
 
@@ -41,6 +41,46 @@ http://creativecommons.org/licenses/by-sa/4.0/
 
 \chapter{Preface}
 
+This novel is a procedurally generated diary of an expedition through
+fantastical places that do not exist.
+
+The novel's primary source text is a database of over 5700 sentences drawn from
+the Project Gutenberg corpus. Each sentence was selected based on semantic and
+syntactic criteria, namely: the sentence must not have any nouns that refer to
+human beings; the sentence must have as its subject some kind of natural object
+or phenomena; the sentence must not have a pronoun as its subject; and the
+sentence must be in the past tense. The resulting list of sentences are all
+(more or less) assertions about the natural world. (The sentences are sourced
+from a subset of Project Gutenberg books, namely those whose subject entries
+include the strings \textit{Western}, \textit{Science fiction},
+\textit{Geology}, \textit{Natural}, \textit{Exploration}, \textit{Discovery} or
+\textit{Physical}.)
+
+I created a number of different procedures to produce the sentences that
+comprise the text of the novel. The most common of these works like this: two
+sentences are selected at random from the sentence database (described above),
+and parsed into their grammatical constituents. The \textit{subject noun
+phrase} of the first sentence is replaced by the subject noun phrase of the
+second sentence, resulting in a hybrid sentence combining aspects of both of
+its sources. For example, these two sentences:
+
+\begin{quote}
+On either side \textit{the walls} were steep and rocky.\\
+\textit{These sounds of woe} were full of meaning.
+\end{quote}
+
+... might be combined to form the following sentences:
+
+\begin{quote}
+On either side \textit{these sounds of woe} were steep and rocky.\\
+\textit{The walls} were full of meaning.
+\end{quote}
+
+The text generation procedure remembers the \textit{topic} of each sentence,
+and occasionally generates sentences that use a pronoun to refer back to and
+elaborate on the subject of a previous sentence. A number of other textual
+generation procedures produce expressions of emotion, awareness and affect on
+the part of the novel's two main characters (\textit{I} and \textit{you}).
 
 \mainmatter
 
