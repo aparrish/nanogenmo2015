@@ -411,9 +411,10 @@ def to_text(surfaced, *args, **kwargs):
 if __name__ == '__main__':
     import os, sys
     from spacy.en import English
+    count, sentence_fname = sys.argv[1:]
     sys.stderr.write("initializing spacy...")
     nlp = English(data_dir=os.environ.get('SPACY_DATA'))
     sys.stderr.write("done.\n")
-    sdb = sentence_db(nlp, open("nature_sentences.txt"))
-    print render_latex_template(sys.stdin, novel(sdb, 10))
+    sdb = sentence_db(nlp, open(sentence_fname))
+    print render_latex_template(sys.stdin, novel(sdb, int(count)))
 
