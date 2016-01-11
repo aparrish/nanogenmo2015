@@ -92,6 +92,17 @@ class TestExtraction(unittest.TestCase):
         self.assertFalse(sentence_is_past(
             first_s(nlp, u"The fish have hunger")))
 
+    def test_sentence_is_present(self):
+        from extract import sentence_is_past
+        self.assertFalse(sentence_is_past(
+            first_s(nlp, u"The fish are hungry")))
+        self.assertTrue(sentence_is_past(
+            first_s(nlp, u"The fish had hunger")))
+        self.assertTrue(sentence_is_past(
+            first_s(nlp, u"This microphone tastes like pastrami")))
+        self.assertFalse(sentence_is_past(
+            first_s(nlp, u"This microphone tasted like pastrami")))
+
     def test_clauses(self):
         from extract import clause_extract
         ccs = clause_extract(first_s(nlp,

@@ -14,7 +14,8 @@ def main(nlp):
         sys.stderr.write("current book: " + str(book_id) + "\n")
         try:
             text = gutenfetch.get_iso_text(book_id)
-            for sentence in extract.nature_sentences(nlp, text):
+            for sentence in extract.nature_sentences(nlp, text,
+                    tense_check=extract.sentence_is_present):
                 sys.stderr.write(sentence + "\n")
                 print str(book_id) + "\t" + sentence
         except ValueError as e:

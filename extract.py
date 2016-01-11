@@ -163,6 +163,9 @@ def nsubj_is_plural(nsubj):
 def sentence_is_past(sentence):
     return sentence.root.tag_ == 'VBD'
 
+def sentence_is_present(sentence):
+    return sentence.root.tag_ in ('VBZ', 'VBP')
+
 def get_aux(sentence):
     for child in sentence.root.children:
         if child.dep_ in ('aux', 'auxpass'):
@@ -293,12 +296,12 @@ def depunct(s):
 def ucfirst(s):
     return s[0].upper() + s[1:]
 
-def nature_sentences(nlp, s):
+def nature_sentences(nlp, s, tense_check=sentence_is_past):
     for sentence in sentences_with_lemmata(nlp, s):
         if not(has_people(nlp, sentence)) and \
                 subjects_are_natural(sentence) and \
                 not(has_pronoun_subject(nlp, sentence)) and \
-                sentence_is_past(sentence) and \
+                tense_check(sentence) and \
                 len(sentence.text) > 20 and \
                 len(sentence.text) < 140:
             yield ucfirst(normalize(sentence.text))
