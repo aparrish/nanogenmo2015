@@ -1,4 +1,4 @@
-#Our Arrival
+# Our Arrival
 
 By [Allison Parrish](http://www.decontextualize.com/)
 
@@ -13,7 +13,7 @@ procedure](http://s3.amazonaws.com/aparrish/our-arrival.pdf).
 
 The source code is not in great shape. Apologies for that. :/
 
-##Usage
+## Usage
 
 The `gen.py` script can be run at the command-line to fill in the
 `template.tex` file with chapters and paragraphs filled in.
@@ -25,7 +25,7 @@ You can replace `300` with the number of chapters you want to generate. The
 text output from the program is a LaTeX file that you can convert to PDF using
 your regular LaTeX toolchain.
 
-##Requirements
+## Requirements
 
 For Python dependencies, see `requirements.txt`.
 
@@ -39,7 +39,7 @@ metadata, I was using Leonard Richardson's
 [47000_metadata.json](https://twitter.com/leonardr/status/667049187918356480)
 (which the Python scripts expect to be available in the working directory).
 
-##Files
+## Files
 
 A quick outline of what's in all of the files...
 
@@ -57,7 +57,7 @@ A quick outline of what's in all of the files...
 * `test.py`: unit/integration tests for a lot of the spaCy functions
 * `test_wordnet.py`: unit tests for WordNet functions
 
-##License
+## License
 
 Copyright (c) 2015 Allison Parrish
 
